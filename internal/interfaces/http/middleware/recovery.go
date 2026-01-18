@@ -4,8 +4,9 @@ import (
 	"log"
 	"net/http"
 
+	"OpsGo/internal/application/dto"
+
 	"github.com/gin-gonic/gin"
-	"FLOWGO/internal/application/dto"
 )
 
 // Recovery 恢复中间件，捕获panic

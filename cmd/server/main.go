@@ -15,19 +15,19 @@ import (
 
 func main() {
 	// 1. Load Config
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Printf("Warning: Could not load config, using defaults: %v", err)
+	// Passing empty string uses default config.yaml or APP_ENV
+	if err := config.LoadConfig(""); err != nil {
+		log.Fatalf("Failed to load config: %v", err)
 	}
 
 	// 2. Initialize Database
-	db, err := database.NewPostgresDB(cfg)
-	if err != nil {
+	if err := database.InitDB(); err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
+	defer database.CloseDB()
 
 	// 3. Initialize Repositories
-	devopsRepo := devops_repo.NewDevOpsRepository(db)
+	devopsRepo := devops_repo.NewDevOpsRepository(database.DB)
 
 	// 4. Initialize Services
 	devopsService := devops.NewDevOpsService(devopsRepo)
@@ -65,6 +65,7 @@ func main() {
 	}
 
 	// 7. Start Server on 8081
+	// We use 8081 specifically for OpsGo to avoid conflict with FlowGo (8080)
 	port := "8081"
 	fmt.Printf("OpsGo starting on port %s...\n", port)
 	if err := r.Run(":" + port); err != nil {
