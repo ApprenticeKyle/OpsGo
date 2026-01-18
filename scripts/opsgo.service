@@ -1,0 +1,16 @@
+[Unit]
+Description=OpsGo DevOps Service
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/opsgo/OpsGo
+ExecStart=/var/www/opsgo/OpsGo/opsgo-server
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/opsgo.log
+StandardError=append:/var/log/opsgo.log
+
+[Install]
+WantedBy=multi-user.target
