@@ -6,6 +6,7 @@ type ConfigRepoRequest struct {
 	RepoURL      string `json:"repo_url" binding:"required"`
 	DeployScript string `json:"deploy_script" binding:"required"`
 	Name         string `json:"name" binding:"required"`
+	LogPath      string `json:"log_path"`
 }
 
 type ConfigRepoResponse struct {
@@ -13,6 +14,7 @@ type ConfigRepoResponse struct {
 	RepoURL      string `json:"repo_url"`
 	DeployScript string `json:"deploy_script"`
 	Name         string `json:"name"`
+	LogPath      string `json:"log_path"`
 }
 
 type PipelineRecordResponse struct {

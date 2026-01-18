@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"time"
 )
@@ -29,6 +30,7 @@ func (s *DevOpsService) ConfigRepo(ctx context.Context, req dto.ConfigRepoReques
 		Name:         req.Name,
 		RepoURL:      req.RepoURL,
 		DeployScript: req.DeployScript,
+		LogPath:      req.LogPath,
 	}
 
 	// Check if exists
@@ -46,7 +48,50 @@ func (s *DevOpsService) ConfigRepo(ctx context.Context, req dto.ConfigRepoReques
 		RepoURL:      config.RepoURL,
 		DeployScript: config.DeployScript,
 		Name:         config.Name,
+		LogPath:      config.LogPath,
 	}, nil
+}
+
+func (s *DevOpsService) GetServiceLog(ctx context.Context, configID uint64) (string, error) {
+	config := s.repo.GetConfig(ctx, configID)
+	if config == nil {
+		return "", fmt.Errorf("config not found")
+	}
+
+	if config.LogPath == "" {
+		return "", fmt.Errorf("log path not configured")
+	}
+
+	// Read last 5KB of log file
+	file, err := os.Open(config.LogPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open log file: %v", err)
+	}
+	defer file.Close()
+
+	stat, err := file.Stat()
+	if err != nil {
+		return "", err
+	}
+
+	fileSize := stat.Size()
+	readSize := int64(5120) // 5KB
+	if fileSize < readSize {
+		readSize = fileSize
+	}
+
+	offset := fileSize - readSize
+	if offset < 0 {
+		offset = 0
+	}
+
+	buf := make([]byte, readSize)
+	_, err = file.ReadAt(buf, offset)
+	if err != nil && err != io.EOF {
+		return "", err
+	}
+
+	return string(buf), nil
 }
 
 func (s *DevOpsService) GetSummary(ctx context.Context) (*dto.DevOpsSummaryResponse, error) {
@@ -67,6 +112,7 @@ func (s *DevOpsService) GetSummary(ctx context.Context) (*dto.DevOpsSummaryRespo
 			Name:         c.Name,
 			RepoURL:      c.RepoURL,
 			DeployScript: c.DeployScript,
+			LogPath:      c.LogPath,
 		})
 	}
 

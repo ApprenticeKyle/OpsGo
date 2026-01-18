@@ -4,6 +4,7 @@ import (
 	"OpsGo/internal/application/dto"
 	"OpsGo/internal/application/service/devops"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,6 +43,23 @@ func (h *DevOpsHandler) GetSummary(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": resp})
+}
+
+func (h *DevOpsHandler) GetServiceLog(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+		return
+	}
+
+	content, err := h.devopsService.GetServiceLog(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": content})
 }
 
 func (h *DevOpsHandler) HandleGitHubWebhook(c *gin.Context) {

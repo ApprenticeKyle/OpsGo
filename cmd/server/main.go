@@ -56,6 +56,7 @@ func main() {
 			opsParams.POST("/config", devOpsH.ConfigRepo)
 			opsParams.GET("/summary", devOpsH.GetSummary)
 			opsParams.POST("/deploy", devOpsH.TriggerDeployment)
+			opsParams.GET("/logs/:id", devOpsH.GetServiceLog)
 		}
 
 		webhooks := v1.Group("/webhooks")
