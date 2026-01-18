@@ -19,5 +19,5 @@ type PipelineRecord struct {
 }
 
 func (PipelineRecord) TableName() string {
-	return "pipeline_records"
+	return "devops_pipeline_records"
 }

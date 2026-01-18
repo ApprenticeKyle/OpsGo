@@ -12,5 +12,5 @@ type RepoConfig struct {
 }
 
 func (RepoConfig) TableName() string {
-	return "repo_configs"
+	return "devops_repo_configs"
 }
