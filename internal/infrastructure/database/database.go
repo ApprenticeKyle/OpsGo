@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"gorm.io/driver/mysql"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
@@ -16,21 +16,26 @@ var DB *gorm.DB
 // InitDB 初始化数据库连接
 func InitDB() error {
 	cfg := config.AppConfig.Database
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		cfg.User,
-		cfg.Password,
-		cfg.Host,
-		cfg.Port,
-		cfg.DBName,
-	)
+
+	// SQLite DSN (File path)
+	dsn := cfg.DBFile
+	if dsn == "" {
+		dsn = "opsgo.db" // Default fallback
+	}
 
 	var err error
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+	// Use glebarez/sqlite for pure Go implementation
+	DB, err = gorm.Open(sqlite.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 
 	if err != nil {
 		return fmt.Errorf("failed to connect database: %w", err)
+	}
+
+	// Enable Foreign Keys for SQLite
+	if err := DB.Exec("PRAGMA foreign_keys = ON").Error; err != nil {
+		return fmt.Errorf("failed to enable foreign keys: %w", err)
 	}
 
 	// 设置连接池
@@ -42,7 +47,7 @@ func InitDB() error {
 	sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
 	sqlDB.SetMaxIdleConns(cfg.MaxIdleConns)
 
-	log.Println("Database connected successfully")
+	log.Println("Database connected successfully (SQLite)")
 	return nil
 }
 

@@ -31,6 +31,7 @@ type DatabaseConfig struct {
 	User         string `yaml:"user"`
 	Password     string `yaml:"password"`
 	DBName       string `yaml:"db_name"`
+	DBFile       string `yaml:"db_file"` // New SQLite file path
 	MaxOpenConns int    `yaml:"max_open_conns"`
 	MaxIdleConns int    `yaml:"max_idle_conns"`
 }
