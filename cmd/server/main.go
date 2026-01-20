@@ -45,24 +45,17 @@ func main() {
 	})
 
 	// API Routes
-	v1 := r.Group("/api/v1")
+	v1 := r.Group("/api/v1/devops")
 	{
 		// Public SSE Route
-		v1.GET("/devops/events", devOpsH.StreamLogs)
+		v1.GET("/events", devOpsH.StreamLogs)
 
-		opsParams := v1.Group("/devops")
-		// opsParams.Use(middleware.Auth()) // Optional: Add auth if needed
-		{
-			opsParams.POST("/config", devOpsH.ConfigRepo)
-			opsParams.GET("/summary", devOpsH.GetSummary)
-			opsParams.POST("/deploy", devOpsH.TriggerDeployment)
-			opsParams.GET("/logs/:id", devOpsH.GetServiceLog)
-		}
+		v1.POST("/config", devOpsH.ConfigRepo)
+		v1.GET("/summary", devOpsH.GetSummary)
+		v1.POST("/deploy", devOpsH.TriggerDeployment)
+		v1.GET("/logs/:id", devOpsH.GetServiceLog)
 
-		webhooks := v1.Group("/webhooks")
-		{
-			webhooks.POST("/github", devOpsH.HandleGitHubWebhook)
-		}
+		v1.POST("/webhooks/github", devOpsH.HandleGitHubWebhook)
 	}
 
 	// 7. Start Server on 8081
