@@ -200,7 +200,7 @@ func (s *DevOpsService) runDeployment(recordID uint64, scriptPath string) {
 	s.updateRecordStatus(ctx, recordID, "running", &startTime, nil, "")
 	s.Broadcaster.BroadcastStatus(recordID, "running")
 
-	cmd := exec.Command("sh", scriptPath)
+	cmd := exec.Command("/bin/bash", scriptPath)
 
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
