@@ -1,7 +1,7 @@
 package devops
 
 import (
-	"io"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,11 +22,27 @@ func (h *DevOpsHandler) StreamLogs(c *gin.Context) {
 	c.SSEvent("ping", "connected")
 	c.Writer.Flush()
 
-	c.Stream(func(w io.Writer) bool {
-		if event, ok := <-clientChan; ok {
+	// Create ticker for keep-alive
+	ticker := time.NewTicker(15 * time.Second)
+	defer ticker.Stop()
+
+	// Notify when client disconnects
+	ctx := c.Request.Context()
+
+	for {
+		select {
+		case event, ok := <-clientChan:
+			if !ok {
+				return
+			}
 			c.SSEvent("message", event)
-			return true
+			c.Writer.Flush()
+		case <-ticker.C:
+			// Send comment as keep-alive to prevent timeout
+			c.Writer.Write([]byte(": keep-alive\n\n"))
+			c.Writer.Flush()
+		case <-ctx.Done():
+			return
 		}
-		return false
-	})
+	}
 }
