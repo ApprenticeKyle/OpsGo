@@ -20,7 +20,9 @@ const (
 
 type SystemMetric struct {
 	Timestamp int64   `json:"timestamp"`
-	Value     float64 `json:"value"`
+	Value     float64 `json:"value"` // Percentage
+	Total     float64 `json:"total,omitempty"`
+	Used      float64 `json:"used,omitempty"`
 }
 
 type MonitorService struct {
@@ -60,21 +62,29 @@ func (s *MonitorService) collect() {
 
 	// CPU
 	percent, err := cpu.Percent(0, false)
+	counts, _ := cpu.Counts(true)
 	if err == nil && len(percent) > 0 {
-		s.saveMetric(ctx, MetricCPU, now, percent[0])
+		// For CPU, Total = Core Count, Used = N/A (or maybe load?)
+		// Let's just store Core Count in Total for reference
+		s.saveMetric(ctx, MetricCPU, now, percent[0], float64(counts), 0)
 	}
 
 	// Memory
 	v, err := mem.VirtualMemory()
 	if err == nil {
-		s.saveMetric(ctx, MetricMemory, now, v.UsedPercent)
+		// Convert bytes to GB
+		totalGB := float64(v.Total) / 1024 / 1024 / 1024
+		usedGB := float64(v.Used) / 1024 / 1024 / 1024
+		s.saveMetric(ctx, MetricMemory, now, v.UsedPercent, totalGB, usedGB)
 	}
 }
 
-func (s *MonitorService) saveMetric(ctx context.Context, key string, ts int64, val float64) {
+func (s *MonitorService) saveMetric(ctx context.Context, key string, ts int64, val, total, used float64) {
 	metric := SystemMetric{
 		Timestamp: ts,
 		Value:     val,
+		Total:     total,
+		Used:      used,
 	}
 	data, _ := json.Marshal(metric)
 
