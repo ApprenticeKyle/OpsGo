@@ -10,6 +10,7 @@ type DevOpsRepository interface {
 	GetConfig(ctx context.Context, id uint64) *devops.RepoConfig
 	GetConfigByRepoURL(ctx context.Context, url string) *devops.RepoConfig
 	ListConfigs(ctx context.Context) ([]devops.RepoConfig, error)
+	DeleteConfig(ctx context.Context, id uint64) error
 
 	CreatePipelineRecord(ctx context.Context, record *devops.PipelineRecord) error
 	UpdatePipelineRecord(ctx context.Context, record *devops.PipelineRecord) error

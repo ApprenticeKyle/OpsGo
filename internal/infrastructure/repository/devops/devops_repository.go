@@ -42,6 +42,10 @@ func (r *devopsRepository) ListConfigs(ctx context.Context) ([]devops.RepoConfig
 	return configs, err
 }
 
+func (r *devopsRepository) DeleteConfig(ctx context.Context, id uint64) error {
+	return r.db.WithContext(ctx).Delete(&devops.RepoConfig{}, id).Error
+}
+
 func (r *devopsRepository) CreatePipelineRecord(ctx context.Context, record *devops.PipelineRecord) error {
 	return r.db.WithContext(ctx).Create(record).Error
 }

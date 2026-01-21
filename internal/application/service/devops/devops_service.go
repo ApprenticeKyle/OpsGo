@@ -47,9 +47,16 @@ func (s *DevOpsService) ConfigRepo(ctx context.Context, req dto.ConfigRepoReques
 		ID:           config.ID,
 		RepoURL:      config.RepoURL,
 		DeployScript: config.DeployScript,
-		Name:         config.Name,
-		LogPath:      config.LogPath,
 	}, nil
+}
+
+func (s *DevOpsService) DeleteConfig(ctx context.Context, id uint64) error {
+	// Check if exists
+	config := s.repo.GetConfig(ctx, id)
+	if config == nil {
+		return fmt.Errorf("config not found")
+	}
+	return s.repo.DeleteConfig(ctx, id)
 }
 
 func (s *DevOpsService) GetServiceLog(ctx context.Context, configID uint64) (string, error) {

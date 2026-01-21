@@ -51,6 +51,7 @@ func main() {
 		v1.GET("/events", devOpsH.StreamLogs)
 
 		v1.POST("/config", devOpsH.ConfigRepo)
+		v1.DELETE("/config/:id", devOpsH.DeleteConfig)
 		v1.GET("/summary", devOpsH.GetSummary)
 		v1.POST("/deploy", devOpsH.TriggerDeployment)
 		v1.GET("/logs/:id", devOpsH.GetServiceLog)

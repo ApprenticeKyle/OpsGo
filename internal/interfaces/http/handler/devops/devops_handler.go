@@ -35,6 +35,22 @@ func (h *DevOpsHandler) ConfigRepo(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": resp})
 }
 
+func (h *DevOpsHandler) DeleteConfig(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+		return
+	}
+
+	if err := h.devopsService.DeleteConfig(c.Request.Context(), id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Service deleted successfully"})
+}
+
 func (h *DevOpsHandler) GetSummary(c *gin.Context) {
 	resp, err := h.devopsService.GetSummary(c.Request.Context())
 	if err != nil {
