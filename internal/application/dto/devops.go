@@ -45,3 +45,10 @@ type WebhookPayload struct {
 	Author    string `json:"author"`
 	Status    string `json:"status"`
 }
+
+type CICallbackRequest struct {
+	RepoURL   string `json:"repo_url" binding:"required"`
+	Status    string `json:"status" binding:"required"`
+	Tag       string `json:"tag"`
+	CommitSHA string `json:"commit_sha"`
+}

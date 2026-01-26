@@ -77,6 +77,7 @@ func main() {
 		v1.GET("/monitor/stats", monitorH.GetStats)
 
 		v1.POST("/webhooks/github", devOpsH.HandleGitHubWebhook)
+		v1.POST("/webhooks/ci", devOpsH.HandleCICallback)
 	}
 
 	// 7. Start Server on 8081

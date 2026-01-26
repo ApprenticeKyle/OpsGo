@@ -200,6 +200,36 @@ func (s *DevOpsService) TriggerDeployment(ctx context.Context, configID uint64) 
 	return nil
 }
 
+func (s *DevOpsService) HandleCICallback(ctx context.Context, req dto.CICallbackRequest) error {
+	if req.Status != "success" {
+		return fmt.Errorf("CI build failed, skipping deployment")
+	}
+
+	config := s.repo.GetConfigByRepoURL(ctx, req.RepoURL)
+	if config == nil {
+		return fmt.Errorf("repository not configured: %s", req.RepoURL)
+	}
+
+	record := &devops.PipelineRecord{
+		ConfigID:      config.ID,
+		RepoName:      config.Name,
+		Status:        "pending",
+		Ref:           req.Tag,
+		CommitSHA:     req.CommitSHA,
+		TriggerSource: "ci_cd",
+		CreatedAt:     time.Now(),
+	}
+
+	if err := s.repo.CreatePipelineRecord(ctx, record); err != nil {
+		return err
+	}
+
+	// Trigger async deployment
+	go s.runDeployment(record.ID, config.DeployScript)
+
+	return nil
+}
+
 func (s *DevOpsService) runDeployment(recordID uint64, scriptPath string) {
 	ctx := context.Background()
 	startTime := time.Now()

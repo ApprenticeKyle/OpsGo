@@ -115,6 +115,21 @@ func (h *DevOpsHandler) HandleGitHubWebhook(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+func (h *DevOpsHandler) HandleCICallback(c *gin.Context) {
+	var req dto.CICallbackRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request parameters"})
+		return
+	}
+
+	if err := h.devopsService.HandleCICallback(c.Request.Context(), req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Deployment triggered from CI"})
+}
+
 func (h *DevOpsHandler) TriggerDeployment(c *gin.Context) {
 	var req struct {
 		ConfigID uint64 `json:"config_id" binding:"required"`
