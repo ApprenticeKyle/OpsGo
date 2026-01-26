@@ -78,42 +78,6 @@ func (h *DevOpsHandler) GetServiceLog(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": content})
 }
 
-func (h *DevOpsHandler) HandleGitHubWebhook(c *gin.Context) {
-	var ghPayload struct {
-		Ref        string `json:"ref"`
-		HeadCommit struct {
-			ID      string `json:"id"`
-			Message string `json:"message"`
-			Author  struct {
-				Name string `json:"name"`
-			} `json:"author"`
-		} `json:"head_commit"`
-		Repository struct {
-			HTMLURL string `json:"html_url"`
-		} `json:"repository"`
-	}
-
-	if err := c.ShouldBindJSON(&ghPayload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid GitHub payload"})
-		return
-	}
-
-	payload := dto.WebhookPayload{
-		RepoURL:   ghPayload.Repository.HTMLURL,
-		Ref:       ghPayload.Ref,
-		CommitSHA: ghPayload.HeadCommit.ID,
-		CommitMsg: ghPayload.HeadCommit.Message,
-		Author:    ghPayload.HeadCommit.Author.Name,
-		Status:    "success",
-	}
-
-	if err := h.devopsService.HandleWebhook(c.Request.Context(), payload); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.Status(http.StatusOK)
-}
 
 func (h *DevOpsHandler) HandleCICallback(c *gin.Context) {
 	var req dto.CICallbackRequest

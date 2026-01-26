@@ -147,33 +147,6 @@ func (s *DevOpsService) GetSummary(ctx context.Context) (*dto.DevOpsSummaryRespo
 	}, nil
 }
 
-func (s *DevOpsService) HandleWebhook(ctx context.Context, payload dto.WebhookPayload) error {
-	config := s.repo.GetConfigByRepoURL(ctx, payload.RepoURL)
-	if config == nil {
-		return fmt.Errorf("repository not configured: %s", payload.RepoURL)
-	}
-
-	record := &devops.PipelineRecord{
-		ConfigID:      config.ID,
-		RepoName:      config.Name,
-		Status:        "pending",
-		Ref:           payload.Ref,
-		CommitSHA:     payload.CommitSHA,
-		CommitMsg:     payload.CommitMsg,
-		Author:        payload.Author,
-		TriggerSource: "webhook",
-		CreatedAt:     time.Now(),
-	}
-
-	if err := s.repo.CreatePipelineRecord(ctx, record); err != nil {
-		return err
-	}
-
-	// Trigger async deployment
-	go s.runDeployment(record.ID, config.DeployScript)
-
-	return nil
-}
 
 func (s *DevOpsService) TriggerDeployment(ctx context.Context, configID uint64) error {
 	config := s.repo.GetConfig(ctx, configID)
