@@ -147,7 +147,6 @@ func (s *DevOpsService) GetSummary(ctx context.Context) (*dto.DevOpsSummaryRespo
 	}, nil
 }
 
-
 func (s *DevOpsService) TriggerDeployment(ctx context.Context, configID uint64) error {
 	config := s.repo.GetConfig(ctx, configID)
 	if config == nil {
@@ -168,7 +167,7 @@ func (s *DevOpsService) TriggerDeployment(ctx context.Context, configID uint64) 
 	}
 
 	// Trigger async deployment
-	go s.runDeployment(record.ID, config.DeployScript)
+	go s.runDeployment(record.ID, config.DeployScript, "latest")
 
 	return nil
 }
@@ -198,19 +197,23 @@ func (s *DevOpsService) HandleCICallback(ctx context.Context, req dto.CICallback
 	}
 
 	// Trigger async deployment
-	go s.runDeployment(record.ID, config.DeployScript)
+	go s.runDeployment(record.ID, config.DeployScript, req.Tag)
 
 	return nil
 }
 
-func (s *DevOpsService) runDeployment(recordID uint64, scriptPath string) {
+func (s *DevOpsService) runDeployment(recordID uint64, scriptPath string, args ...string) {
 	ctx := context.Background()
 	startTime := time.Now()
 
 	s.updateRecordStatus(ctx, recordID, "running", &startTime, nil, "")
 	s.Broadcaster.BroadcastStatus(recordID, "running")
 
-	cmd := exec.Command("/bin/bash", scriptPath)
+	// Prepend scriptPath to args to make it compatible with common execution patterns if needed,
+	// but exec.Command takes name (shell) and then args.
+	// We want to run: /bin/bash script_path arg1 arg2 ...
+	cmdArgs := append([]string{scriptPath}, args...)
+	cmd := exec.Command("/bin/bash", cmdArgs...)
 
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
